@@ -1,0 +1,245 @@
+Too many procs:
+
+# Add Bullets
+def proc_shoot_random(b):
+    return [extra_bullet((b.sprite.x,b.sprite.y), b.damage, b.x_speed+(random.random()-.5)*10, (random.random()-.5)*10, 2)], b
+
+# Bullet Movement
+def proc_bullet_forward(b):
+    b.x_speed +=1 * b.direction
+    return [], b
+
+def proc_bullet_backward(b):
+    b.x_speed -=1 * b.direction
+    return [], b
+
+def proc_bullet_up(b):
+    b.y_speed +=1
+    return [], b
+
+def proc_bullet_down(b):
+    b.y_speed -=1
+    return [], b
+
+def proc_bullet_random(b):
+    b.x_speed += random.choice([-1, 0, 1])
+    b.y_speed += random.choice([-1, 0, 1])
+    return [], b
+
+def proc_bullet_stop(b):
+    b.x_speed = 0
+    b.y_speed = 0
+    b.distance += 50
+    return [], b
+
+def proc_bullet_stop_shoot(b):
+    b.x_speed = 0
+    b.y_speed = 0
+    b.distance += 50
+
+    return [extra_bullet((b.sprite.x,b.sprite.y), b.damage, b.x_speed+(random.random()-.5)*10, (random.random()-.5)*10, 2)], b
+
+
+def proc_bullet_stop(b):
+    b.x_speed = 0
+    b.y_speed = 0
+    b.distance += 50
+    return [], b
+
+def proc_swirl(b):
+    b.counter += 1
+    if b.counter % random.randint(1,30) == 0:
+        b.y_speed -= 3 *cmp(b.y_speed,0)
+        b.counter = 0
+
+    if b.y_speed == 0:
+        b.y_speed = random.choice([-1,1])
+
+    return [], b    
+
+# Bullet view styles
+def proc_star_grow(b):
+    b.size += 1
+    size = [b.size, 1]
+    random.shuffle(size)
+    bullet = pyglet.image.create(size[0], size[1], white_sprite)
+    b.sprite = pyglet.sprite.Sprite(img=bullet, x = b.sprite.x, y = b.sprite.y, batch=gfx_batch)
+    b.sprite.rotation = random.randint(0, 360)
+    return [], b
+
+# Bullet spit
+def proc_rotate(b):
+    # b.size += 1
+    # size = [b.size, 1]
+    # random.shuffle(size)
+    if b.counter<360:
+        b.counter += 1
+    else:
+        b.counter = 0
+    bullet = pyglet.image.create(20, 5, white_sprite)
+    b.sprite = pyglet.sprite.Sprite(img=bullet, x = b.sprite.x, y = b.sprite.y, batch=gfx_batch)
+    b.sprite.rotation = b.counter
+    return [], b
+
+
+
+def proc_split(b):
+    return [extra_bullet((b.sprite.x,b.sprite.y), b.damage, b.x_speed+(random.random()-.5)*5, (random.random()-.5)*20, 2)], b
+
+# this is a good example of editing a bullet to do more after it does one thing
+def proc_spin_dropper(b):
+    spinner = extra_bullet((b.sprite.x,b.sprite.y), b.damage, (random.random()-.5)*20, (random.random()-.5)*20, 4)
+    spinner.special1 = proc_spin
+    spinner.special1_chance = 1
+    spinner.range = 500
+    return [spinner], b
+
+def proc_dropper(b):
+    return [extra_bullet((b.sprite.x,b.sprite.y), b.damage, (random.random()-.5)*5, -5, 4)], b
+
+def proc_spin(b):
+    point = (b.sprite.x, b.sprite.y)
+    try:
+        x_rel, y_rel = (point[0]-b.sprite.x)/abs(point[0]-b.sprite.x), (point[1]-b.sprite.y)/abs(point[1]-b.sprite.y)
+    except:
+        x_rel, y_rel = random.choice([-1,0,1]), random.choice([-1,0,1])
+    try:
+        b.x_speed += x_rel
+        b.y_speed += y_rel
+        if b.x_speed > abs(b.base_x_speed):
+            b.x_speed = b.base_x_speed*(b.x_speed/abs(b.x_speed))
+        if b.y_speed > abs(b.base_x_speed):
+            b.y_speed = b.base_x_speed*(b.y_speed/abs(b.y_speed))
+    except:
+        pass
+    return [], b
+
+def proc_shoot_boomer(b):
+    shot = extra_bullet((b.sprite.x,b.sprite.y), b.damage, b.x_speed*-1, random.choice([-2,2]), 3)
+    shot.special1 = proc_slow_down
+    shot.direction = b.direction*-1
+    shot.range = 1000
+    shot.special1_chance = 1
+    return [shot], b
+
+def proc_shoot_random(b):
+    bullets = []
+    for i in range(random.randint(0,5)):
+        bullets.append(extra_bullet((b.sprite.x,b.sprite.y), b.damage, (random.random()-.5)*20, (random.random()-.5)*20, 1))
+    return bullets, b
+
+def proc_wave(b):
+    shot = extra_bullet((b.sprite.x,b.sprite.y), b.damage, b.distance/10*b.direction, random.choice([-1,1]), 1)
+    shot.pierce = 1
+    return [shot], b
+
+def proc_wave2(b):
+    shot = extra_bullet((b.sprite.x,b.sprite.y), b.damage, b.x_speed*b.distance/b.range, 10/(b.distance+1)*b.direction, 1)
+    shot.range = 20
+    return [shot], b
+
+def proc_explode(b):
+    bullets = []
+    for i in range(10):
+        bullets.append(extra_bullet((b.sprite.x,b.sprite.y), b.damage, (random.random()-.5)*20, (random.random()-.5)*20, 1))
+    return bullets, b
+
+def proc_shotgun_spray(b):
+    shotgun_spray = extra_bullet((b.sprite.x,b.sprite.y), b.damage, (random.random()-.5)*20, (random.random()-.5)*20, 1)
+    shotgun_spray.special1 = proc_shotgun
+    shotgun_spray.special1_chance = .1
+    return [shotgun_spray], b
+
+
+def proc_rain(b):
+    shot = extra_bullet((b.sprite.x,b.sprite.y), b.damage, 0, -5, 5)
+    shot.collide_chance = 1
+    shot.collide = proc_explode
+    shot.range = 1000
+    return [shot], b
+
+def proc_shoot_down(b):
+    return [extra_bullet((b.sprite.x,b.sprite.y), b.damage, 0, -10, 1)], b
+
+def proc_shotgun(b):
+    if b.distance<50:
+        return [extra_bullet((b.sprite.x,b.sprite.y), b.damage, b.x_speed, random.random()*10, 2),extra_bullet((b.sprite.x,b.sprite.y), b.damage, b.x_speed, (random.random()-.5)*20,2),], b
+    else:
+        return [], b
+
+
+def proc_grow(b):
+    b.size += 1
+    bullet = pyglet.image.create(b.size, b.size, white_sprite)
+    b.sprite = pyglet.sprite.Sprite(img=bullet, x = b.sprite.x, y = b.sprite.y, batch=gfx_batch)
+    return [], b
+
+def proc_drop_hammer(b):
+    if b.distance > 50:
+        a = extra_bullet((b.sprite.x-10,b.sprite.y+20), b.damage, 0, -5, 5)
+        c = extra_bullet((b.sprite.x-5,b.sprite.y+20), b.damage, 0, -5, 5)
+        d = extra_bullet((b.sprite.x+0,b.sprite.y+20), b.damage, 0, -5, 5)
+        e = extra_bullet((b.sprite.x+5,b.sprite.y+20), b.damage, 0, -5, 5)
+
+        f = extra_bullet((b.sprite.x-5,b.sprite.y+25), b.damage, 0, -5, 5)
+        g = extra_bullet((b.sprite.x+0,b.sprite.y+25), b.damage, 0, -5, 5)
+
+        h = extra_bullet((b.sprite.x-5,b.sprite.y+30), b.damage, 0, -5, 5)
+        i = extra_bullet((b.sprite.x+0,b.sprite.y+30), b.damage, 0, -5, 5)
+
+        j = extra_bullet((b.sprite.x-10,b.sprite.y+35), b.damage, 0, -5, 5)
+        k = extra_bullet((b.sprite.x-5,b.sprite.y+35), b.damage, 0, -5, 5)
+        l = extra_bullet((b.sprite.x+0,b.sprite.y+35), b.damage, 0, -5, 5)
+        m = extra_bullet((b.sprite.x+5,b.sprite.y+35), b.damage, 0, -5, 5)
+
+        b.special1_chance = 0
+        b.range = 0
+        return [a,c,d,e,f,g,h,i,j,k,l,m], b
+    else:
+        return [], b
+
+def proc_pulse(b):
+    # if b.distance > 50:
+    a = extra_bullet((b.sprite.x, b.sprite.y), b.damage, 3, 2, 2)
+    c = extra_bullet((b.sprite.x, b.sprite.y), b.damage, 3, -2, 2)
+    d = extra_bullet((b.sprite.x, b.sprite.y), b.damage, -3, 2, 2)
+    e = extra_bullet((b.sprite.x, b.sprite.y), b.damage, -3, -2, 2)
+    f = extra_bullet((b.sprite.x, b.sprite.y), b.damage, 5, 0, 2)
+    g = extra_bullet((b.sprite.x, b.sprite.y), b.damage, -5, 0, 2)
+    h = extra_bullet((b.sprite.x, b.sprite.y), b.damage, 0, 5, 2)
+    i = extra_bullet((b.sprite.x, b.sprite.y), b.damage, 0, -5, 2)
+    return [a,c,d,e,f,g,h,i], b
+
+
+
+
+def proc_slow_down(b):
+    b.x_speed -=1*b.direction
+    b.range += 10
+    return [], b
+
+
+
+def proc_grow_mine(b):
+    if b.distance > b.range-100:
+        b.x_speed = random.choice([-1,0,1])
+        b.y_speed = random.choice([-1,0,1])
+        b.size += 1
+        bullet = pyglet.image.create(b.size, b.size, white_sprite)
+        b.sprite = pyglet.sprite.Sprite(img=bullet, x = b.sprite.x, y = b.sprite.y, batch=gfx_batch)
+    return [], b
+
+
+
+
+
+
+def proc_ground_bounce(b):
+    b.y_speed = b.y_speed*-1
+    b.pierce = 1
+    return [], b
+
+def proc_wall_bounce(b):
+    b.x_speed = b.x_speed*-1
+    b.pierce = 1
+    return [], b
